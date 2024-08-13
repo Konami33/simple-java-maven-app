@@ -1,14 +1,29 @@
 pipeline {
     agent any
+    tools {
+        maven 'Maven1'  // Ensure this matches the name configured in Jenkins Global Tool Configuration
+    }
     stages {
         stage('Build') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                script {
+                    try {
+                        sh 'mvn -B -DskipTests clean package'
+                    } catch (Exception e) {
+                        error "Build failed: ${e.message}"
+                    }
+                }
             }
         }
         stage('Test') {
             steps {
-                sh 'mvn test'
+                script {
+                    try {
+                        sh 'mvn test'
+                    } catch (Exception e) {
+                        error "Test failed: ${e.message}"
+                    }
+                }
             }
             post {
                 always {
@@ -18,7 +33,13 @@ pipeline {
         }
         stage('Deliver') {
             steps {
-                sh './jenkins/scripts/deliver.sh'
+                script {
+                    try {
+                        sh './jenkins/scripts/deliver.sh'
+                    } catch (Exception e) {
+                        error "Delivery failed: ${e.message}"
+                    }
+                }
             }
         }
     }
